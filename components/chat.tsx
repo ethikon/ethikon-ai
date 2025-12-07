@@ -4,9 +4,10 @@ import { useChat } from "@ai-sdk/react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ModelSelector } from "@/components/model-selector";
-import { ArrowUpIcon, PlusIcon, SearchIcon, BookOpenIcon, FileTextIcon, GlobeIcon } from "lucide-react";
+import { ArrowUpIcon, PlusIcon, SearchIcon, BookOpenIcon, FileTextIcon, GlobeIcon, CopyIcon, CheckIcon, ThumbsUpIcon, ThumbsDownIcon, GithubIcon } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect, useRef, useCallback } from "react";
+import type { UIMessage } from "@ai-sdk/react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -69,13 +70,79 @@ function ToolInvocation({ toolType, toolName, state, input }: {
   );
 }
 
+function MessageActions({ message, feedback, onFeedback }: { 
+  message: UIMessage;
+  feedback: "like" | "dislike" | null;
+  onFeedback: (type: "like" | "dislike") => void;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  const getTextContent = () => {
+    return message.parts
+      .filter((part) => part.type === "text")
+      .map((part) => (part as { type: "text"; text: string }).text)
+      .join("\n");
+  };
+
+  const handleCopy = async () => {
+    const text = getTextContent();
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+      <button
+        onClick={handleCopy}
+        className="p-1.5 rounded-md text-muted-foreground/60 hover:text-foreground hover:bg-muted/50 transition-colors"
+        title="Copy"
+      >
+        {copied ? <CheckIcon className="h-3.5 w-3.5 text-green-500" /> : <CopyIcon className="h-3.5 w-3.5" />}
+      </button>
+      <button
+        onClick={() => onFeedback("like")}
+        className={cn(
+          "p-1.5 rounded-md transition-colors",
+          feedback === "like" 
+            ? "text-green-500 bg-green-500/10" 
+            : "text-muted-foreground/60 hover:text-foreground hover:bg-muted/50"
+        )}
+        title="Good response"
+      >
+        <ThumbsUpIcon className="h-3.5 w-3.5" />
+      </button>
+      <button
+        onClick={() => onFeedback("dislike")}
+        className={cn(
+          "p-1.5 rounded-md transition-colors",
+          feedback === "dislike" 
+            ? "text-red-500 bg-red-500/10" 
+            : "text-muted-foreground/60 hover:text-foreground hover:bg-muted/50"
+        )}
+        title="Bad response"
+      >
+        <ThumbsDownIcon className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
 export function Chat() {
   const [input, setInput] = useState("");
   const [selectedModel, setSelectedModel] = useState<SupportedModel>(DEFAULT_MODEL);
+  const [feedbacks, setFeedbacks] = useState<Record<string, "like" | "dislike" | null>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const { messages, error, sendMessage, regenerate, setMessages, stop, status } = useChat();
+
+  const handleFeedback = (messageId: string, type: "like" | "dislike") => {
+    setFeedbacks((prev) => ({
+      ...prev,
+      [messageId]: prev[messageId] === type ? null : type,
+    }));
+  };
 
   const hasMessages = messages.length > 0;
 
@@ -125,6 +192,21 @@ export function Chat() {
           className="h-10 w-10 md:h-9 md:w-9 shadow-border-small hover:shadow-border-medium bg-background/80 backdrop-blur-sm border-0 hover:bg-background active:scale-95 md:hover:scale-[1.02] transition-all duration-150 ease"
         >
           <PlusIcon className="h-4 w-4" />
+        </Button>
+        <Button
+          asChild
+          variant="outline"
+          size="icon"
+          className="h-10 w-10 md:h-9 md:w-9 shadow-border-small hover:shadow-border-medium bg-background/80 backdrop-blur-sm border-0 hover:bg-background active:scale-95 md:hover:scale-[1.02] transition-all duration-150 ease"
+        >
+          <a
+            href="https://github.com/nozomio-labs/paulgraham-ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub repository"
+          >
+            <GithubIcon className="h-4 w-4" />
+          </a>
         </Button>
         <ThemeToggle />
       </div>
@@ -245,6 +327,7 @@ export function Chat() {
                 <div
                   key={m.id}
                   className={cn(
+                    "group",
                     m.role === "user" &&
                       "bg-foreground text-background rounded-2xl p-3 md:p-4 ml-auto max-w-[90%] md:max-w-[75%] shadow-border-small font-medium text-sm md:text-base",
                     m.role === "assistant" && "max-w-[95%] md:max-w-[85%] text-foreground/90 leading-relaxed text-sm md:text-base"
@@ -277,6 +360,21 @@ export function Chat() {
                         return null;
                     }
                   })}
+                  {m.role === "assistant" && status !== "streaming" && (
+                    <>
+                    <MessageActions 
+                      message={m} 
+                      feedback={feedbacks[m.id] || null}
+                      onFeedback={(type) => handleFeedback(m.id, type)}
+                    />
+                    <div className="mt-3 pt-3 border-t border-border/40 flex items-start gap-2 text-xs text-muted-foreground/70">
+                       <div className="mt-1 w-1.5 h-1.5 rounded-full bg-black dark:bg-white shrink-0" />
+                       <span>
+                         To reduce code hallucinations or give more reliable context to your coding agents, try <a href="https://trynia.ai" target="_blank" rel="noopener noreferrer" className="font-medium text-blue-500 hover:underline transition-all">Nia</a>.
+                       </span>
+                    </div>
+                    </>
+                  )}
                 </div>
               ))}
 
@@ -308,7 +406,7 @@ export function Chat() {
       )}
 
       {hasMessages && (
-        <div className="w-full max-w-4xl mx-auto px-4 md:px-8 pb-6 md:pb-8">
+        <div className="w-full max-w-4xl mx-auto px-4 md:px-8 pb-4 md:pb-6 pt-2">
           <form onSubmit={handleSubmit}>
             <div className="relative rounded-2xl bg-muted/50 dark:bg-muted/30 border border-border/50 shadow-sm hover:shadow-md focus-within:shadow-md focus-within:border-border transition-all duration-200">
               <textarea
@@ -347,32 +445,34 @@ export function Chat() {
         </div>
       )}
 
-      <footer className="pb-8 text-center animate-fade-in" style={{ animationDelay: '200ms' }}>
-        <p className="text-xs md:text-sm text-muted-foreground">
-          Powered by{" "}
-          <a
-            href="https://trynia.ai"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline underline-offset-4 hover:text-foreground transition-colors"
-          >
-            Nia
-          </a>
-          {" "}(
-          <a
-            href="https://nozomio.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline underline-offset-4 hover:text-foreground transition-colors"
-          >
-            Nozomio Labs
-          </a>
-          )
-        </p>
-        <p className="text-xs text-muted-foreground/60 mt-1">
-          Arlan Rakhmetzhanov Production
-        </p>
-      </footer>
+      {!hasMessages && (
+        <footer className="pb-8 text-center animate-fade-in" style={{ animationDelay: '200ms' }}>
+          <p className="text-xs md:text-sm text-muted-foreground">
+            Powered by{" "}
+            <a
+              href="https://trynia.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4 hover:text-foreground transition-colors"
+            >
+              Nia
+            </a>
+            {" "}(
+            <a
+              href="https://nozomio.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4 hover:text-foreground transition-colors"
+            >
+              Nozomio Labs
+            </a>
+            )
+          </p>
+          <p className="text-xs text-muted-foreground/60 mt-1">
+            Arlan Rakhmetzhanov Production
+          </p>
+        </footer>
+      )}
     </div>
   );
 }
