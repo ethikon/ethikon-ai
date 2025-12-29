@@ -1,5 +1,6 @@
-import { createGatewayProvider } from "@ai-sdk/gateway";
+import { openai } from '@ai-sdk/openai';
 
-export const gateway = createGatewayProvider({
-  baseURL: process.env.AI_GATEWAY_BASE_URL,
-});
+export function gateway(model: string) {
+  // Bypass Vercel AI Gateway, use OpenAI directly
+  return openai(model);
+}
