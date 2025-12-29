@@ -197,7 +197,7 @@ export function Chat() {
           className="h-10 w-10 md:h-9 md:w-9 shadow-border-small hover:shadow-border-medium bg-background/80 backdrop-blur-sm border-0 hover:bg-background active:scale-95 md:hover:scale-[1.02] transition-all duration-150 ease"
         >
           <a
-            href="https://github.com/ethikon/ethikon.github.io"
+            href="https://github.com/ethikon/ethikon-ai"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub repository"
