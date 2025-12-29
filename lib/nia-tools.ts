@@ -45,9 +45,9 @@ async function niaFetch(
 }
 
 function getSourceId(): string {
-  const sourceId = process.env.PAUL_GRAHAM_NIA_SOURCE;
+const sourceId = process.env.SILICON_HILLS_NIA_SOURCE;
   if (!sourceId) {
-    throw new Error("PAUL_GRAHAM_NIA_SOURCE environment variable is not set");
+throw new Error("SILICON_HILLS_NIA_SOURCE environment variable is not set");
   }
   return sourceId;
 }
@@ -55,9 +55,9 @@ function getSourceId(): string {
 /**
  * Semantic search over Paul Graham's essays
  */
-export const searchEssays = tool({
+export const searchLegalContent = tool({
   description:
-    "Search Paul Graham's essays using semantic search. Use this to find essays related to a topic or concept. Returns relevant chunks with context.",
+    "Search legal content for startup founders. Use this to find information about equity, SAFEs, incorporation, NDAs, contracts, etc.",
   inputSchema: z.object({
     query: z
       .string()
@@ -65,7 +65,7 @@ export const searchEssays = tool({
   }),
   execute: async ({ query }) => {
     const sourceId = getSourceId();
-    log.tool("searchEssays", { query, sourceId });
+    log.tool("searchLegalContent", { query, sourceId });
     const response = await niaFetch("/query", {
       method: "POST",
       body: JSON.stringify({
@@ -78,13 +78,13 @@ export const searchEssays = tool({
 
     if (!response.ok) {
       const error = await response.text();
-      log.error("searchEssays", error);
+      log.error("searchLegalContent", error);
       throw new Error(`Nia API error: ${error}`);
     }
 
     const data = await response.json();
     const sourcesCount = data.sources?.length || 0;
-    log.success("searchEssays", `Found ${sourcesCount} sources`);
+    log.success("searchLegalContent", `Found ${sourcesCount} sources`);
     log.response(data);
     return data;
   },
@@ -93,18 +93,18 @@ export const searchEssays = tool({
 /**
  * Get the tree structure of all Paul Graham essays
  */
-export const browseEssays = tool({
+export const browseLegalContent = tool({
   description:
     "Get the complete tree structure of all Paul Graham essays. Use this to see what essays are available and how they're organized.",
   inputSchema: z.object({}),
   execute: async () => {
-    log.tool("browseEssays", {});
+    log.tool("browseLegalContent", {});
     const sourceId = getSourceId();
     const response = await niaFetch(`/data-sources/${sourceId}/tree`);
 
     if (!response.ok) {
       const error = await response.text();
-      log.error("browseEssays", error);
+      log.error("browseLegalContent", error);
       throw new Error(`Nia API error: ${error}`);
     }
 
@@ -114,7 +114,7 @@ export const browseEssays = tool({
       pageCount: data.page_count,
       baseUrl: data.base_url,
     };
-    log.success("browseEssays", `Found ${result.pageCount} pages`);
+    log.success("browseLegalContent", `Found ${result.pageCount} pages`);
     log.response(result);
     return result;
   },
@@ -131,7 +131,7 @@ export const listDirectory = tool({
       .string()
       .default("/")
       .describe(
-        'Virtual path to list (e.g., "/" for root). Get paths from browseEssays first.'
+        'Virtual path to list (e.g., "/" for root). Get paths from browseLegalContent first.'
       ),
   }),
   execute: async ({ path }) => {
@@ -164,18 +164,18 @@ export const listDirectory = tool({
 /**
  * Read the full content of a Paul Graham essay
  */
-export const readEssay = tool({
+export const readLegalContent = tool({
   description:
     "Read the full content of a specific Paul Graham essay by its virtual path. Use this to get the complete text of an essay after finding it via search or browse.",
   inputSchema: z.object({
     path: z
       .string()
       .describe(
-        'Virtual path to the essay (e.g., "/startups.md"). Get paths from browseEssays or listDirectory.'
+        'Virtual path to the essay (e.g., "/startups.md"). Get paths from browseLegalContent or listDirectory.'
       ),
   }),
   execute: async ({ path }) => {
-    log.tool("readEssay", { path });
+    log.tool("readLegalContent", { path });
     const sourceId = getSourceId();
     const params = new URLSearchParams({ path });
     const response = await niaFetch(
@@ -184,7 +184,7 @@ export const readEssay = tool({
 
     if (!response.ok) {
       const error = await response.text();
-      log.error("readEssay", error);
+      log.error("readLegalContent", error);
       throw new Error(`Nia API error: ${error}`);
     }
 
@@ -195,7 +195,7 @@ export const readEssay = tool({
       content: data.content,
     };
     const contentLength = result.content?.length || 0;
-    log.success("readEssay", `Read ${contentLength} chars from ${path}`);
+    log.success("readLegalContent", `Read ${contentLength} chars from ${path}`);
     console.log(`   URL: ${result.url}`);
     return result;
   },
@@ -204,7 +204,7 @@ export const readEssay = tool({
 /**
  * Search essays using regex pattern
  */
-export const grepEssays = tool({
+export const grepLegalContent = tool({
   description:
     "Search Paul Graham's essays using a regex pattern. Use this to find specific phrases, quotes, or text patterns across all essays. Supports case sensitivity, whole word matching, and context lines.",
   inputSchema: z.object({
@@ -280,7 +280,7 @@ export const grepEssays = tool({
     outputMode, 
     highlight 
   }) => {
-    log.tool("grepEssays", { pattern, path, contextLines, linesAfter, linesBefore, caseSensitive, wholeWord, fixedString, outputMode });
+    log.tool("grepLegalContent", { pattern, path, contextLines, linesAfter, linesBefore, caseSensitive, wholeWord, fixedString, outputMode });
     const sourceId = getSourceId();
     const response = await niaFetch(`/data-sources/${sourceId}/grep`, {
       method: "POST",
@@ -302,7 +302,7 @@ export const grepEssays = tool({
 
     if (!response.ok) {
       const error = await response.text();
-      log.error("grepEssays", error);
+      log.error("grepLegalContent", error);
       throw new Error(`Nia API error: ${error}`);
     }
 
@@ -316,7 +316,7 @@ export const grepEssays = tool({
       totalMatches: data.total_matches,
       filesSearched: data.files_searched,
     };
-    log.success("grepEssays", `Found ${result.totalMatches} matches in ${result.filesSearched} files`);
+    log.success("grepLegalContent", `Found ${result.totalMatches} matches in ${result.filesSearched} files`);
     log.response(result);
     return result;
   },
@@ -415,12 +415,11 @@ export const getSourceContent = tool({
 });
 
 // Export all tools as a single object for easy use
-export const niaPaulGrahamTools = {
-  searchEssays,
-  browseEssays,
-  listDirectory,
-  readEssay,
-  grepEssays,
+export const niaEthikonTools = {
+  searchLegalContent,
+  browseLegalContent,
+  readLegalContent,
+  grepLegalContent,
   webSearch,
   getSourceContent,
 };

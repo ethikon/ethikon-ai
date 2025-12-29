@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ModelSelector } from "@/components/model-selector";
 import { ArrowUpIcon, PlusIcon, SearchIcon, BookOpenIcon, FileTextIcon, GlobeIcon, CopyIcon, CheckIcon, ThumbsUpIcon, ThumbsDownIcon, GithubIcon } from "lucide-react";
-import Image from "next/image";
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { UIMessage } from "@ai-sdk/react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -15,20 +14,20 @@ import { Streamdown } from "streamdown";
 import { DEFAULT_MODEL, type SupportedModel } from "@/lib/constants";
 
 const toolIcons: Record<string, React.ReactNode> = {
-  searchEssays: <SearchIcon className="h-3 w-3" />,
-  browseEssays: <BookOpenIcon className="h-3 w-3" />,
+  searchLegalContent: <SearchIcon className="h-3 w-3" />,
+  browseLegalContent: <BookOpenIcon className="h-3 w-3" />,
   listDirectory: <FileTextIcon className="h-3 w-3" />,
-  readEssay: <FileTextIcon className="h-3 w-3" />,
-  grepEssays: <SearchIcon className="h-3 w-3" />,
+  readLegalContent: <FileTextIcon className="h-3 w-3" />,
+  grepLegalContent: <SearchIcon className="h-3 w-3" />,
   webSearch: <GlobeIcon className="h-3 w-3" />,
 };
 
 const toolDisplayNames: Record<string, string> = {
-  searchEssays: "Searching essays",
-  browseEssays: "Browsing essays",
+  searchLegalContent: "Searching legal resources",
+  browseLegalContent: "Browsing legal content",
   listDirectory: "Listing directory",
-  readEssay: "Reading essay",
-  grepEssays: "Pattern search",
+  readLegalContent: "Reading legal content",
+  grepLegalContent: "Finding legal terms",
   webSearch: "Web search",
 };
 
@@ -38,13 +37,11 @@ function ToolInvocation({ toolType, toolName, state, input }: {
   state?: string;
   input?: unknown;
 }) {
-  // Extract tool name from type (e.g., "tool-searchEssays" -> "searchEssays")
   const resolvedToolName = toolName || toolType.replace("tool-", "");
   const displayName = toolDisplayNames[resolvedToolName] || resolvedToolName;
   const defaultIcon = <SearchIcon className="h-3 w-3" />;
   const icon: React.ReactNode = resolvedToolName in toolIcons ? toolIcons[resolvedToolName] : defaultIcon;
   
-  // Get query/path from input for context
   const inputObj = input as Record<string, unknown> | undefined;
   const rawContext = inputObj?.query || inputObj?.path || inputObj?.pattern;
   const inputContext = rawContext ? String(rawContext) : null;
@@ -200,7 +197,7 @@ export function Chat() {
           className="h-10 w-10 md:h-9 md:w-9 shadow-border-small hover:shadow-border-medium bg-background/80 backdrop-blur-sm border-0 hover:bg-background active:scale-95 md:hover:scale-[1.02] transition-all duration-150 ease"
         >
           <a
-            href="https://github.com/nozomio-labs/paulgraham-ai"
+            href="https://github.com/ethikon/ethikon.github.io"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub repository"
@@ -215,32 +212,19 @@ export function Chat() {
           <div className="w-full max-w-2xl text-center space-y-6 md:space-y-12">
             <div className="space-y-3 md:space-y-4">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 animate-slide-up">
-                <Image
-                  src="/pg.png"
-                  alt="Paul Graham"
-                  width={128}
-                  height={128}
-                  className="rounded-full shadow-lg w-14 h-14 md:w-16 md:h-16 object-cover"
-                  priority
-                  quality={100}
-                />
+                <div className="w-14 h-14 md:w-16 md:h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                  <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                  </svg>
+                </div>
                 <h1 className="text-2xl sm:text-3xl md:text-5xl font-light tracking-tight text-foreground">
                   <span className="font-serif font-semibold tracking-tight">
-                    Paul Graham Agent
+                    Ethikon AI
                   </span>
                 </h1>
               </div>
               <p className="text-muted-foreground text-sm md:text-base animate-slide-up px-2" style={{ animationDelay: '50ms' }}>
-                Ask questions about startups, writing, technology, and life — grounded in 120+ essays. Powered by{" "}
-                <a
-                  href="https://trynia.ai"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-4 hover:text-foreground transition-colors"
-                >
-                  Nia
-                </a>
-                .
+                Legal AI for startup founders. Get accurate answers about incorporation, equity, contracts, and more — 24/7.
               </p>
             </div>
             <div className="w-full animate-slide-up" style={{ animationDelay: '100ms' }}>
@@ -249,7 +233,7 @@ export function Chat() {
                   <textarea
                     ref={textareaRef}
                     name="prompt"
-                    placeholder="What makes a good startup idea?"
+                    placeholder="How should I split equity with my co-founder?"
                     onChange={(e) => setInput(e.target.value)}
                     value={input}
                     autoFocus
@@ -284,35 +268,35 @@ export function Chat() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3 text-xs md:text-sm animate-slide-up" style={{ animationDelay: '150ms' }}>
               <button
                 onClick={() => {
-                  setInput("What is Collison installation?");
+                  setInput("How should I split equity between co-founders?");
                 }}
                 className="p-3 rounded-xl text-left text-muted-foreground hover:text-foreground active:bg-muted/70 hover:bg-muted/50 transition-colors"
               >
-                &ldquo;What is Collison installation?&rdquo;
+                &ldquo;How to split equity?&rdquo;
               </button>
               <button
                 onClick={() => {
-                  setInput("In the essay about schlep blindness, what example does PG give about Stripe and why most hackers avoided building it?");
+                  setInput("What's the difference between a SAFE and convertible note?");
                 }}
                 className="p-3 rounded-xl text-left text-muted-foreground hover:text-foreground active:bg-muted/70 hover:bg-muted/50 transition-colors"
               >
-                &ldquo;Why did hackers avoid building Stripe?&rdquo;
+                &ldquo;SAFE vs convertible note?&rdquo;
               </button>
               <button
                 onClick={() => {
-                  setInput("What exactly does PG mean by ramen profitable and what specific advice does he give about when to take outside funding vs bootstrap?");
+                  setInput("Should I incorporate in Delaware or my home state?");
                 }}
                 className="p-3 rounded-xl text-left text-muted-foreground hover:text-foreground active:bg-muted/70 hover:bg-muted/50 transition-colors"
               >
-                &ldquo;When to bootstrap vs take funding?&rdquo;
+                &ldquo;Where to incorporate?&rdquo;
               </button>
               <button
                 onClick={() => {
-                  setInput("In the default alive or default dead essay, what is the exact calculation PG describes to determine which category your startup falls into?");
+                  setInput("What should be in a founder agreement?");
                 }}
                 className="p-3 rounded-xl text-left text-muted-foreground hover:text-foreground active:bg-muted/70 hover:bg-muted/50 transition-colors"
               >
-                &ldquo;How to calculate default alive?&rdquo;
+                &ldquo;Founder agreement basics?&rdquo;
               </button>
             </div>
           </div>
@@ -344,7 +328,6 @@ export function Chat() {
                           <div key={`${m.id}-${i}`}>{part.text}</div>
                         );
                       default:
-                        // Handle tool invocations
                         if (part.type.startsWith("tool-")) {
                           const toolPart = part as { type: string; toolName?: string; state?: string; input?: unknown };
                           return (
@@ -370,7 +353,7 @@ export function Chat() {
                     <div className="mt-3 pt-3 border-t border-border/40 flex items-start gap-2 text-xs text-muted-foreground/70">
                        <div className="mt-1 w-1.5 h-1.5 rounded-full bg-black dark:bg-white shrink-0" />
                        <span>
-                         To reduce code hallucinations or give more reliable context to your coding agents, try <a href="https://trynia.ai" target="_blank" rel="noopener noreferrer" className="font-medium text-blue-500 hover:underline transition-all">Nia</a>.
+                         ⚠️ This is legal information, not legal advice. Consult a licensed attorney for your specific situation.
                        </span>
                     </div>
                     </>
@@ -448,28 +431,10 @@ export function Chat() {
       {!hasMessages && (
         <footer className="pb-8 text-center animate-fade-in" style={{ animationDelay: '200ms' }}>
           <p className="text-xs md:text-sm text-muted-foreground">
-            Powered by{" "}
-            <a
-              href="https://trynia.ai"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline underline-offset-4 hover:text-foreground transition-colors"
-            >
-              Nia
-            </a>
-            {" "}(
-            <a
-              href="https://nozomio.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline underline-offset-4 hover:text-foreground transition-colors"
-            >
-              Nozomio Labs
-            </a>
-            )
+            Ethikon AI - Legal information for startup founders
           </p>
           <p className="text-xs text-muted-foreground/60 mt-1">
-            Arlan Rakhmetzhanov Production
+            ⚠️ This is legal information, not legal advice.
           </p>
         </footer>
       )}

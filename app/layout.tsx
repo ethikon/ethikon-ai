@@ -15,17 +15,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Paul Graham Agent",
-  description: "Ask Paul Graham anything — an AI agent grounded in 120+ essays, powered by Nia",
+  title: "Ethikon AI - Legal AI for Startup Founders",
+  description: "Get accurate legal information about incorporation, equity, contracts, and more. Available 24/7 for startup founders.",
   openGraph: {
-    title: "Paul Graham Agent",
-    description: "Ask Paul Graham anything — an AI agent grounded in 120+ essays, powered by Nia",
+    title: "Ethikon AI - Legal AI for Startup Founders",
+    description: "Legal information for startups. No hallucinations, just accurate answers.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Paul Graham Agent",
-    description: "Ask Paul Graham anything — an AI agent grounded in 120+ essays, powered by Nia",
+    title: "Ethikon AI",
+    description: "Legal AI that doesn't hallucinate",
   },
   viewport: {
     width: "device-width",
